@@ -30,8 +30,10 @@ API_URL="https://api.github.com/repos/arturo-lang/${REPO}/releases"
 # HELPERS
 ################################################
 
+# shellcheck disable=SC2034
 RED='\e[0;31m'
 GREEN='\e[1;32m'
+# shellcheck disable=SC2034
 BLUE='\e[0;34m'
 MAGENTA='\e[1;35m'
 CYAN='\e[1;36m'
@@ -228,7 +230,7 @@ download_arturo() {
          --show-error
 }
 
-unpack_arturo() {
+unpack_tar() {
     # This piece of code is using traditional option style due
     # to compatibility issues between `tar`'s versions.
     # Long versions are accepted for `GNU's tar`, and for others ones
@@ -240,6 +242,13 @@ unpack_arturo() {
     #   -f: --file 
     #   -C: --directory 
     tar -zxf "$ARTURO_TMP_DIR/arturo.tar.gz" -C $ARTURO_TMP_DIR
+}
+
+unpack_zip() {
+    # It seems that `unzip` doesn't provide a long version of its options. 
+    # 
+    #   -d: directory to which to extract files.
+    unzip "$ARTURO_TMP_DIR/arturo.zip" -d "$ARTURO_TMP_DIR"
 }
 
 install_arturo() {
@@ -272,7 +281,12 @@ main() {
         download_arturo
 
         section "Installing..."
-        unpack_arturo
+        if [ "$currentOS" = "linux" ]; then
+            unpack_tar
+        else
+            unpack_zip
+        fi
+
         install_arturo
 
         section "Cleaning up..."
