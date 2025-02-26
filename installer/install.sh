@@ -283,7 +283,7 @@ main() {
         section "Done!"
         eecho ""
         showFooter
-    elif [ "$currentOS" = "windows-msys2" ]; then
+    elif [ "$currentOS" = "windows" ]; then
         panic "Cannot continue. Try to install via install.ps1";
     else
         panic "Cannot continue. Unfortunately your OS is not supported by this auto-installer.";
