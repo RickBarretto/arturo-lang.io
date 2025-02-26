@@ -39,8 +39,7 @@ GRAY='\e[0;90m'
 CLEAR='\e[0m'
 
 printColorized() {
-    NC='\e[0m'
-    printf "${1}${2}${NC}"
+    printf "${1}${2}${CLEAR}"
 }
 
 panic() {
