@@ -173,15 +173,19 @@ verifyShell(){
     case "$SHELL" in
         */bin/zsh)
             currentShell="zsh" ;
+            # shellcheck disable=SC2088
             shellRcFile="~/.zshrc" ;;
         */bin/bash)
             currentShell="bash" ;
+            # shellcheck disable=SC2088
             shellRcFile="~/.bashrc or ~/.profile" ;;
         */bin/sh)
             currentShell="sh" ;
+            # shellcheck disable=SC2088
             shellRcFile="~/.profile" ;;
         *)
             currentShell="unrecognized" ;
+            # shellcheck disable=SC2088
             shellRcFile="~/.profile" ;;
     esac
 
