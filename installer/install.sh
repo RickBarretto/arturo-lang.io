@@ -162,7 +162,7 @@ verifyOS(){
             elif [ `uname` = "FreeBSD" ]; then
                 currentOS="freebsd"
             else
-                currentOS="Unknown ($OSTYPE / `uname`)"
+                currentOS="Unknown ($OSTYPE / $(uname))"
             fi ;;
     esac
 
