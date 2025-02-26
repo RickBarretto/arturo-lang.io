@@ -262,7 +262,7 @@ main() {
     verifyOS
     verifyShell
 
-    if [ "$currentOS" = "linux" ] || [ "$currentOS" = "macos" ] || [ "$currentOS" = "windows-msys2" ]; then
+    if [ "$currentOS" = "linux" ] || [ "$currentOS" = "macos" ]; then
         section "Checking prerequisites..."
         install_prerequisites
 
@@ -280,6 +280,8 @@ main() {
         section "Done!"
         eecho ""
         showFooter
+    elif [ "$currentOS" = "windows-msys2" ]; then
+        panic "Cannot continue. Try to install via install.ps1";
     else
         panic "Cannot continue. Unfortunately your OS is not supported by this auto-installer.";
     fi
