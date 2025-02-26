@@ -125,7 +125,7 @@ cleanup_tmp_directory() {
 }
 
 command_exists(){
-    type "$1" &> /dev/null
+    type "$1" > /dev/null 2>&1
 }
 
 animate_progress(){
