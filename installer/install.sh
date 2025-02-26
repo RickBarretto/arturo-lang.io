@@ -157,9 +157,9 @@ verifyOS(){
         freebsd*)   currentOS="freebsd" ;;
         bsd*)       currentOS="bsd" ;;
         *)
-            if [ `uname` = "Linux" ]; then
+            if [ "$(uname)" = "Linux" ]; then
                 currentOS="linux"
-            elif [ `uname` = "FreeBSD" ]; then
+            elif [ "$(uname)" = "FreeBSD" ]; then
                 currentOS="freebsd"
             else
                 currentOS="Unknown ($OSTYPE / $(uname))"
