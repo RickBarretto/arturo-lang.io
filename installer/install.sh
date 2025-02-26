@@ -151,8 +151,8 @@ verifyOS(){
     case "$OSTYPE" in
         linux*)     currentOS="linux" ;;
         darwin*)    currentOS="macos" ;;
-        cygwin*)    currentOS="windows-msys2" ;;
-        msys*)      currentOS="windows-msys2" ;;
+        cygwin*)    currentOS="windows" ;;
+        msys*)      currentOS="windows" ;;
         solaris*)   currentOS="solaris" ;;
         freebsd*)   currentOS="freebsd" ;;
         bsd*)       currentOS="bsd" ;;
