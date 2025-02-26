@@ -17,7 +17,7 @@ set -o xtrace
 REPO="arturo"
 VERSION="full"
 
-for cmd in $@; do
+for cmd in "$@"; do
     case $cmd in
         --nightly|-n) REPO="nightly";;
         --mini|-m)    VERSION="mini";; 
