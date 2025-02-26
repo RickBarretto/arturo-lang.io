@@ -226,7 +226,9 @@ download_arturo() {
          --output "$ARTURO_TMP_DIR/arturo.tar.gz"   \
          --silent                                   \
          --show-error
+}
 
+unpack_arturo() {
     # This piece of code is using traditional option style due
     # to compatibility issues between `tar`'s versions.
     # Long versions are accepted for `GNU's tar`, and for others ones
@@ -270,6 +272,7 @@ main() {
         download_arturo
 
         section "Installing..."
+        unpack_arturo
         install_arturo
 
         section "Cleaning up..."
