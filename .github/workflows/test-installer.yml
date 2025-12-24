@@ -27,7 +27,7 @@ jobs:
             fail-fast: false
         
         runs-on: ${{ matrix.os }}
-        
+
         steps:
             - name: Setup MacPorts
               if: matrix.pkg_manager == 'macports'
