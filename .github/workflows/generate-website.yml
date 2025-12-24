@@ -18,12 +18,12 @@ jobs:
             version_tag: ${{ steps.version-info.outputs.VERSION_TAG }}
 
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-              with:
-                ref: master
-                fetch-depth: 0
-                token: ${{ secrets.PAT_TOKEN }}
+            # - name: Checkout code
+            #   uses: actions/checkout@v3
+            #   with:
+            #     ref: master
+            #     fetch-depth: 0
+            #     token: ${{ secrets.PAT_TOKEN }}
       
             - name: Increment build number and get version info
               id: version-info
@@ -127,10 +127,10 @@ jobs:
             run:
                 shell: bash
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-              with:
-                fetch-depth: 0
+            # - name: Checkout code
+            #   uses: actions/checkout@v3
+            #   with:
+            #     fetch-depth: 0
 
             - name: Install Arturo
               uses: arturo-lang/arturo-action@v2
@@ -208,16 +208,16 @@ jobs:
                   --keywordPredicates:"$(arturo tools/getbuiltins.art 1)" \
                   --keywordRest:"$(arturo tools/getbuiltins.art 2)"
 
-                mv details.art docs/website/data/setup.art
+                mv details.art src/data/setup.art
                 rm -rf tmpdocs  # Remove if exists
                 mkdir -p tmpdocs
-                cd docs/website
-                arturo ../../tools/miniwebize/webize.art --build --at: ../../tmpdocs
-                cd ../..
+                cd src
+                arturo ../tools/miniwebize/webize.art --build --at: ../tmpdocs
+                cd ..
                 mkdir -p tmpdocs/backend
-                cp -r docs/website/backend/* tmpdocs/backend/
-                mkdir -p tmpdocs/tools
-                cp -r docs/website/tools/* tmpdocs/tools/
+                cp -r src/backend/* tmpdocs/backend/
+                mkdir -p tmpdocs/scripts
+                cp -r src/scripts/* tmpdocs/scripts
                 arturo tools/genaiguide.art
                 mv tools/aiguide.md tmpdocs/llms.txt
 
@@ -225,6 +225,12 @@ jobs:
               run: |
                 sudo apt-get install pandoc texlive-latex-base texlive-fonts-recommended texlive-extra-utils texlive-latex-extra
                 sed 's/[^\x00-\x7F]//g' tmpdocs/llms.txt | pandoc -f gfm -t pdf -o tmpdocs/tutorial.pdf
+
+            - name: Checkout examples repository
+              uses: actions/checkout@v4
+              with:
+                repository: arturo-lang/examples
+                path: examples
 
             - name: Copy Rosetta Code examples
               run: |
@@ -281,7 +287,7 @@ jobs:
                   unzip -o files/*-freebsd-amd64.zip
                   mkdir -p bin
                   mv arturo bin/
-                  chmod +x tools/setup_runner.sh
+                  chmod +x scripts/setup_runner.sh
                   sudo /usr/local/sbin/arturo_setup_runner latest
  
             - name: Upload complete website artifact
