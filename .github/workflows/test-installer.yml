@@ -7,7 +7,7 @@ on:
           - 'src/tools/installer.ps1'
           - '.github/workflows/test-installer.yml'
     workflow_dispatch:
-    
+
 concurrency: 
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
@@ -50,7 +50,7 @@ jobs:
                   port installed gmp mpfr libiconv
             
             - name: Install Arturo
-              run: curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/docs/website/tools/installer.sh | sh
+              run: curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/src/scripts/installer.sh | sh
             
             - name: Add to PATH and test
               run: |
@@ -91,7 +91,7 @@ jobs:
                   fi
             
             - name: Install Arturo
-              run: curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/docs/website/tools/installer.sh | sh
+              run: curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/src/scripts/installer.sh | sh
             
             - name: Add to PATH and test
               run: |
@@ -115,7 +115,7 @@ jobs:
                       pkg update
                       pkg install -y curl bash mpfr webkit2-gtk_41
                   run: |
-                      curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/docs/website/tools/installer.sh | sh
+                      curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/src/scripts/installer.sh | sh
                       export PATH=$HOME/.arturo/bin:$PATH
                       arturo -v
                       freebsd-version
@@ -141,12 +141,12 @@ jobs:
         steps:
             - name: Install Arturo (Bash)
               if: matrix.shell_type == 'bash'
-              run: curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/docs/website/tools/installer.sh | sh
+              run: curl -sSL https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/src/scripts/installer.sh | sh
             
             - name: Install Arturo (PowerShell)
               if: matrix.shell_type == 'powershell'
               run: |
-                  $script = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/docs/website/tools/installer.ps1"
+                  $script = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/src/scripts/installer.ps1"
                   Invoke-Expression $script
             
             - name: Add to PATH and test (Bash)

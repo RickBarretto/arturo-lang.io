@@ -6,7 +6,7 @@
 ; - Before anything, build Arturo for docgen (to have the necessary line data):
 ;       ./build.nims build docgen 
 ; - First, run this script - to generate all necessary data & templates
-; - Then, go to docs/website
+; - Then, go to src
 ; - Finally, run: webize --build --at: ../../../arturo-lang.io/
 ; - And upload all website files to server
 ;
@@ -19,7 +19,7 @@ modules: new []
 functions: #[]
 relatedFuncs: #[]
 
-rosettas: sort map select list "examples/rosetta" => [contains? & ".res"] 'rosetta [
+rosettas: sort map select list "examples/src/rosetta" => [contains? & ".res"] 'rosetta [
     (extract.basename rosetta) -- extract.extension rosetta
 ]
 
@@ -29,12 +29,12 @@ loop rosettas 'ro [
     'dict ++ ro
 ]
 
-loop list "docs/website/data" 'df [
+loop list "src/data" 'df [
     if ".art" = extract.extension df -> 
         delete df
 ]
 
-(express.pretty dict) >> "docs/website/data/rosetta.art" 
+(express.pretty dict) >> "src/data/rosetta.art" 
 
 ; get modules and functions
 loop keys symbols [sym][
@@ -87,7 +87,7 @@ unique 'modules
 
 loop functions [modl,lst][
     ;processing modl
-    target: relative join.path @["../docs/website/pages/documentation/library" lower modl]
+    target: relative join.path @["../src/pages/documentation/library" lower modl]
 
     loop list target 'tt [
         if "_index.art" <> extract.basename tt ->
@@ -144,6 +144,6 @@ loop funcs 'f [
     ]
 ]
 
-(express.pretty sort unique modules) >> "docs/website/data/libraryModules.art" 
-(express.pretty funcList) >> "docs/website/data/libraryFunctions.art" 
-(express.pretty symbList) >> "docs/website/data/librarySymbols.art" 
+(express.pretty sort unique modules) >> "src/data/libraryModules.art" 
+(express.pretty funcList) >> "src/data/libraryFunctions.art" 
+(express.pretty symbList) >> "src/data/librarySymbols.art" 

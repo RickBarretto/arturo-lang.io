@@ -1,5 +1,5 @@
 
-docPath: "docs/website/pages/documentation"
+docPath: "src/pages/documentation"
 libDocPath: ~"|docPath|/library"
 fname: function [p][ extract.filename p ]
 validDocFile?: function [f][ not? contains? ['.' '_'] first fname f ]
@@ -40,5 +40,5 @@ loop select list libDocPath => validDocFile? 'modl [
     ]
 ]
 
-write.directory ø "docs/website/theme/resources/data"
-docEntries >>.compact.json "docs/website/theme/resources/data/index.json"
+write.directory ø "src/theme/resources/data"
+docEntries >>.compact.json "src/theme/resources/data/index.json"
