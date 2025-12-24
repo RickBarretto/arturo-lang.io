@@ -17,12 +17,12 @@ pprint ~"# Arturo Programming language"
 
 pprint ~"## Language overview"
 
-languageDoc: # ~"docs/website/pages/documentation/language.art"
+languageDoc: # ~"src/pages/documentation/language.art"
 pprint languageDoc\content
 
 pprint ~"## Example program"
 
-nutshellDoc: # ~"docs/website/pages/documentation/in a nutshell.art"
+nutshellDoc: # ~"src/pages/documentation/in a nutshell.art"
 pprint nutshellDoc\content
 
 pprint ~"## Standard library"
@@ -30,7 +30,7 @@ pprint ~"## Standard library"
 loop data [lib, contents][
     unless lib = "--" [
         pprint ~"### |lib|"
-        desc: # ~"docs/website/pages/documentation/library/|lower lib|/_index.art"
+        desc: # ~"src/pages/documentation/library/|lower lib|/_index.art"
         pprint desc\description
         pprint "\n----\n"
         ovv: desc\overview

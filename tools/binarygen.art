@@ -143,15 +143,15 @@ buildDate: "} ++ buildDate ++ {"
 }
 
 ; Write to file
-write output "docs/website/pages/_index.art" 
+write output "src/pages/_index.art" 
 
-newGettingStarted: replace read "docs/website/pages/documentation/getting started.art" "content: {!md" output ++ "\ncontent: {!md"
-write newGettingStarted "docs/website/pages/documentation/getting started.art"
+newGettingStarted: replace read "src/pages/documentation/getting started.art" "content: {!md" output ++ "\ncontent: {!md"
+write newGettingStarted "src/pages/documentation/getting started.art"
 
 inspect sort # to :block output
 
 print "\nGenerated _index.art:"
-print read "docs/website/pages/_index.art"
+print read "src/pages/_index.art"
 
 
 [versionPart,buildPart]: split.by:"+" to :string sys\version
