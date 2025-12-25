@@ -25,7 +25,7 @@ if (preg_match('/[^a-zA-Z0-9_\-\' +^]/', $example_name)) {
 $example_name = basename($example_name);
 
 // Construct the file path
-$example_file = __DIR__ . '/../examples/' . $example_name . '.art';
+$example_file = __DIR__ . '/../examples/src/rosetta/' . $example_name . '.art';
 
 $txt = "";
 if (file_exists($example_file)) {

@@ -105,7 +105,7 @@ chmod 1777 "$JAIL_ROOT/tmp"
 # Copy examples directory
 #==================================================
 
-EXAMPLES_DIR=$(dirname "$ARTURO_BIN" | xargs dirname)/examples
+EXAMPLES_DIR=$(dirname "$ARTURO_BIN" | xargs dirname)/examples/src/rosetta
 if [ -d "$EXAMPLES_DIR" ]; then
     echo "Copying examples directory..."
     mkdir -p "$JAIL_ROOT/examples"

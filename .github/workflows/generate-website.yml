@@ -268,6 +268,8 @@ jobs:
                   cd /usr/local/www/arturo/main/versions/latest
                 
                   # Download just the files as a tarball, extract directly
+                  mkdir -p examples
+                  
                   curl -L https://github.com/arturo-lang/examples/archive/refs/heads/main.tar.gz | \
                       tar xz --strip-components=1 -C examples/
 
