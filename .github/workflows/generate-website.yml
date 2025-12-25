@@ -196,6 +196,12 @@ jobs:
                 echo "Downloaded artifacts:"
                 ls -lh files/
 
+            - name: Checkout examples repository
+              uses: actions/checkout@v4
+              with:
+                repository: arturo-lang/examples
+                path: examples
+
             - name: "Generate website"
               env:
                 VERSION_TAG: ${{ needs.Build.outputs.version_tag }}
@@ -225,12 +231,6 @@ jobs:
               run: |
                 sudo apt-get install pandoc texlive-latex-base texlive-fonts-recommended texlive-extra-utils texlive-latex-extra
                 sed 's/[^\x00-\x7F]//g' tmpdocs/llms.txt | pandoc -f gfm -t pdf -o tmpdocs/tutorial.pdf
-
-            - name: Checkout examples repository
-              uses: actions/checkout@v4
-              with:
-                repository: arturo-lang/examples
-                path: examples
 
             - name: Copy Rosetta Code examples
               run: |
