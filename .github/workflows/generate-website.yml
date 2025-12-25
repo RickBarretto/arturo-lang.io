@@ -284,6 +284,11 @@ jobs:
                 key: ${{ secrets.FREEBSD_DEPLOYMENT }}
                 script: |
                   cd /usr/local/www/arturo/main/versions/latest
+                
+                  # Download just the files as a tarball, extract directly
+                  curl -L https://github.com/arturo-lang/examples/archive/refs/heads/main.tar.gz | \
+                      tar xz --strip-components=1 -C examples/
+
                   unzip -o files/*-freebsd-amd64.zip
                   mkdir -p bin
                   mv arturo bin/
