@@ -232,24 +232,6 @@ jobs:
                 sudo apt-get install pandoc texlive-latex-base texlive-fonts-recommended texlive-extra-utils texlive-latex-extra
                 sed 's/[^\x00-\x7F]//g' tmpdocs/llms.txt | pandoc -f gfm -t pdf -o tmpdocs/tutorial.pdf
 
-            - name: Copy Rosetta Code examples
-              run: |
-                # Create examples directory
-                mkdir -p tmpdocs/examples
-                
-                # Copy all files from examples/rosetta recursively, excluding .res files
-                if [ -d "examples/rosetta" ]; then
-                    echo "Copying Rosetta Code examples..."
-                    find examples/src/rosetta -type f ! -name "*.res" -exec cp {} tmpdocs/examples/ \;
-
-                    # List what was copied
-                    echo "Examples copied:"
-                    ls -1 tmpdocs/examples/ | wc -l
-                    echo "files"
-                else
-                    echo "Warning: examples/rosetta directory not found"
-                fi
-
             - name: Copy binaries to website
               run: |
                 # Create binaries directory in website output
