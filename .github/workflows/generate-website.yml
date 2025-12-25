@@ -240,7 +240,7 @@ jobs:
                 # Copy all files from examples/rosetta recursively, excluding .res files
                 if [ -d "examples/rosetta" ]; then
                     echo "Copying Rosetta Code examples..."
-                    find examples/rosetta -type f ! -name "*.res" -exec cp {} tmpdocs/examples/ \;
+                    find examples/src/rosetta -type f ! -name "*.res" -exec cp {} tmpdocs/examples/ \;
 
                     # List what was copied
                     echo "Examples copied:"
