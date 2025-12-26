@@ -38,13 +38,13 @@ jobs:
               with:
                 fetch-depth: 0
 
-            - name: Install Arturo
-              uses: arturo-lang/arturo-action@v2
-              with: 
-                do: compile
-                mode: docgen
-                token: ${{ secrets.GITHUB_TOKEN }}
-                metadata: ${{ inputs.version_tag }}
+            # - name: Install Arturo
+            #   uses: arturo-lang/arturo-action@v2
+            #   with: 
+            #     do: compile
+            #     mode: docgen
+            #     token: ${{ secrets.GITHUB_TOKEN }}
+            #     metadata: ${{ inputs.version_tag }}
 
             - name: "Install Node"
               uses: actions/setup-node@v4
@@ -73,6 +73,18 @@ jobs:
                 run_id: ${{ github.run_id }}
                 path: ./files
                 skip_unpack: true
+
+            - name: Setup Arturo
+              run: |
+                ARTIFACT_NAME="arturo-${{ inputs.version_tag }}-linux-amd64"
+              
+                unzip -q "files/${ARTIFACT_NAME}.zip" -d /tmp/arturo
+                
+                chmod +x /tmp/arturo/arturo
+                echo "/tmp/arturo" >> $GITHUB_PATH
+                
+                /tmp/arturo/arturo --version
+              shell: bash
 
             - name: Checkout examples repository
               uses: actions/checkout@v4
