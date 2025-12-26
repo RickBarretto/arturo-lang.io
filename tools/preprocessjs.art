@@ -1,3 +1,14 @@
+keywordPredicates: []
+keywordRest: []
+
+loop symbols [k,v][
+    switch suffix? k "?" -> 'keywordPredicates ++ chop to :string k
+                         -> 'keywordRest ++ to :string k
+]
+
+keywordPredicates: sort keywordPredicates
+keywordRest: sort keywordRest -- ["keywordPredicates" "keywordRest"]
+
 changes: #[
     "src/theme/resources/scripts/docsearch.js": [
         'basePath
@@ -15,7 +26,11 @@ changes: #[
     ]
 ]
 
-inspect args
+params: #[
+    basePath: arg\0
+    keywordPredicates: keywordPredicates
+    keywordRest: keywordRest
+]
 
 loop changes [file, replacements][
     print ["Processing:" file]
@@ -23,7 +38,7 @@ loop changes [file, replacements][
     loop replacements 'rep [
         print ["- replacing:" rep]
         content: replace content "%<[" ++ (to :string rep) ++ "]>%"
-                                 args\[to :string rep]
+                                 params\[rep]
     ]
     content >> file
 ]

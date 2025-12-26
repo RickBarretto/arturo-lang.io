@@ -181,10 +181,7 @@ jobs:
                 arturo tools/binarygen.art  "$VERSION_TAG" latest
                 arturo tools/sitegen.art
                 arturo tools/indexgen.art
-                arturo tools/preprocessjs.art \
-                  --basePath:"latest" \
-                  --keywordPredicates:"$(arturo tools/getbuiltins.art 1)" \
-                  --keywordRest:"$(arturo tools/getbuiltins.art 2)"
+                arturo tools/preprocessjs.art latest
 
                 mv details.art src/data/setup.art
                 rm -rf tmpdocs  # Remove if exists
