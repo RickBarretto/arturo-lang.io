@@ -117,7 +117,7 @@ output: #[
 ; Write to file
 write express.pretty.unwrapped output "src/pages/_index.art" 
 
-newGettingStarted: replace read "src/pages/documentation/getting started.art" "content: {!md" output ++ "\ncontent: {!md"
+newGettingStarted: replace read "src/pages/documentation/getting started.art" "content: {!md" (express.pretty.unwrapped output) ++ "\ncontent: {!md"
 write newGettingStarted "src/pages/documentation/getting started.art"
 
 inspect sort # to :block output
