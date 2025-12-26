@@ -193,8 +193,7 @@ jobs:
                 cp -r src/backend/* tmpdocs/backend/
                 mkdir -p tmpdocs/scripts
                 cp -r src/scripts/* tmpdocs/scripts
-                arturo tools/genaiguide.art
-                mv tools/aiguide.md tmpdocs/llms.txt
+                arturo tools/genaiguide.art >> tmpdocs/llms.txt
 
             - name: Generate tutorial
               run: |

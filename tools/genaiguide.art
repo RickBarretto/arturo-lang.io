@@ -79,5 +79,7 @@ loop data [lib, contents][
     ]
 ]
 
-unless empty? ppout ->
-    ppout >> ./"aiguide.md"
+print ppout
+
+; unless empty? ppout ->
+;     ppout >> ./"aiguide.md"
