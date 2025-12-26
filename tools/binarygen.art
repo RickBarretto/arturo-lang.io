@@ -109,7 +109,7 @@ buildDate: strip execute ~"date -u '+%Y-%m-%d %H:%M:%S UTC'"
 
 ; Generate the _index.art file
 output: #[
-    binaries: sortedBinary
+    binaries: sortedBinaries
     version: version
     buildDate: buildDate
 ]
