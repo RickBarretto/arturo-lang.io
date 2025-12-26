@@ -193,12 +193,9 @@ jobs:
                 cp -r src/backend/* tmpdocs/backend/
                 mkdir -p tmpdocs/scripts
                 cp -r src/scripts/* tmpdocs/scripts
-                arturo tools/genaiguide.art >> tmpdocs/llms.txt
 
-            - name: Generate tutorial
-              run: |
-                sed 's/[^\x00-\x7F]//g' tmpdocs/llms.txt | pandoc -f gfm -t pdf -o tmpdocs/tutorial.pdf
-
+                arturo tools/tutorialgen.art tmpdocs
+                
             - name: Copy binaries to website
               run: |
                 # Create binaries directory in website output
