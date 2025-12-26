@@ -155,13 +155,6 @@ jobs:
               with:
                 ruby-version: 3.3
 
-            - name: "Cache gems"
-              id: cache-gems
-              uses: actions/cache@v4
-              with:
-                path: ~/.gem
-                key: ${{ runner.os }}-gems
-
             - name: "Install gems"
               run: |
                 gem install commonmarker -v "2.1.0" --platform=ruby
