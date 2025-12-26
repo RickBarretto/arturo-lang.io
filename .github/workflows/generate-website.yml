@@ -1,74 +1,74 @@
 name: Update
 
 on:
-  pull_request:
-  workflow_dispatch:
+    pull_request:
+    workflow_dispatch:
  
 concurrency: 
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  Build:
-    runs-on: ubuntu-latest
-    outputs:
-      version_tag: ${{ steps.version-info.outputs.VERSION_TAG }}
-    steps:
-      - name: Increment build number and get version info
-        id: version-info
-        run: |
-          version_tag="nightly.20251223"
-          echo "VERSION_TAG=${version_tag}" >> "$GITHUB_OUTPUT"
+    Build:
+        runs-on: ubuntu-latest
+        outputs:
+            version_tag: ${{ steps.version-info.outputs.VERSION_TAG }}
+        steps:
+            - name: Increment build number and get version info
+              id: version-info
+              run: |
+                version_tag="nightly.20251223"
+                echo "VERSION_TAG=${version_tag}" >> "$GITHUB_OUTPUT"
 
-  Binaries:
-    runs-on: ${{ 
-        (matrix.os == 'linux')   && (matrix.support == 'legacy' && (matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04') || matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest') ||
-        (matrix.os == 'macos')   && (matrix.arch == 'arm64' && 'macos-latest' || 'macOS-15-intel') ||
-        (matrix.os == 'windows') && 'windows-latest' || 
-                                    'ubuntu-latest'  }}
-    needs: Build
-    strategy:
-      matrix:
-        include: 
-          - {os: linux,   arch: amd64, mode: full}
-          - {os: linux,   arch: amd64, mode: full, support: legacy}
-          - {os: linux,   arch: amd64, mode: mini}
-          - {os: linux,   arch: arm64, mode: full}
-          - {os: linux,   arch: arm64, mode: full, support: legacy}
-          - {os: linux,   arch: arm64, mode: mini}
-          - {os: freebsd, arch: amd64, mode: full}
-          - {os: freebsd, arch: amd64, mode: mini}
-          - {os: macos,   arch: amd64, mode: full}
-          - {os: macos,   arch: amd64, mode: mini}
-          - {os: macos,   arch: arm64, mode: full}
-          - {os: macos,   arch: arm64, mode: mini}
-          - {os: windows, arch: amd64, mode: full}
-          - {os: windows, arch: amd64, mode: mini}
-          - {os: web}
+    Binaries:
+        runs-on: ${{ 
+            (matrix.os == 'linux')   && (matrix.support == 'legacy' && (matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04') || matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest') ||
+            (matrix.os == 'macos')   && (matrix.arch == 'arm64' && 'macos-latest' || 'macOS-15-intel') ||
+            (matrix.os == 'windows') && 'windows-latest' || 
+                                        'ubuntu-latest'  }}
+        needs: Build
+        strategy:
+            matrix:
+                include: 
+                    - {os: linux,   arch: amd64, mode: full}
+                    - {os: linux,   arch: amd64, mode: full, support: legacy}
+                    - {os: linux,   arch: amd64, mode: mini}
+                    - {os: linux,   arch: arm64, mode: full}
+                    - {os: linux,   arch: arm64, mode: full, support: legacy}
+                    - {os: linux,   arch: arm64, mode: mini}
+                    - {os: freebsd, arch: amd64, mode: full}
+                    - {os: freebsd, arch: amd64, mode: mini}
+                    - {os: macos,   arch: amd64, mode: full}
+                    - {os: macos,   arch: amd64, mode: mini}
+                    - {os: macos,   arch: arm64, mode: full}
+                    - {os: macos,   arch: arm64, mode: mini}
+                    - {os: windows, arch: amd64, mode: full}
+                    - {os: windows, arch: amd64, mode: mini}
+                    - {os: web}
 
-    name: Build ${{ matrix.os }}-${{ matrix.arch || 'js' }}-${{ matrix.mode || 'mini' }}${{ matrix.support == 'legacy' && '-legacy' || '' }}
-    steps:
-      - name: Install Arturo
-        uses: arturo-lang/arturo-action@main
-        with: 
-          do: fetch
-          token: ${{ secrets.GITHUB_TOKEN }}
-          os: ${{ matrix.os }}
-          arch: ${{ matrix.arch }}
-          mode: ${{ matrix.mode }}
-          support: ${{ matrix.support }}
-          metadata: ${{ needs.Build.outputs.version_tag }}
-          create_artifact: 'true'
-          artifacts_only: 'true'
+        name: Build ${{ matrix.os }}-${{ matrix.arch || 'js' }}-${{ matrix.mode || 'mini' }}${{ matrix.support == 'legacy' && '-legacy' || '' }}
+        steps:
+            - name: Install Arturo
+              uses: arturo-lang/arturo-action@main
+              with: 
+                do: fetch
+                token: ${{ secrets.GITHUB_TOKEN }}
+                os: ${{ matrix.os }}
+                arch: ${{ matrix.arch }}
+                mode: ${{ matrix.mode }}
+                support: ${{ matrix.support }}
+                metadata: ${{ needs.Build.outputs.version_tag }}
+                create_artifact: 'true'
+                artifacts_only: 'true'
 
-  # Call the reusable website deployment workflow
-  Deploy:
-    needs: [Build, Binaries]
-    uses: ./.github/workflows/deploy-website.yml
-    with:
-      version_tag: ${{ needs.Build.outputs.version_tag }}
-      channel: 'latest'
-      binaries_repo: 'nightly'
-      run_id: ${{ github.run_id }}
-    secrets:
-      FREEBSD_DEPLOYMENT: ${{ secrets.FREEBSD_DEPLOYMENT }}
+    # Call the reusable website deployment workflow
+    Deploy:
+        needs: [Build, Binaries]
+        uses: ./.github/workflows/deploy.yml
+        with:
+            version_tag: ${{ needs.Build.outputs.version_tag }}
+            channel: 'latest'
+            binaries_repo: 'nightly'
+            run_id: ${{ github.run_id }}
+        secrets:
+            FREEBSD_DEPLOYMENT: ${{ secrets.FREEBSD_DEPLOYMENT }}
