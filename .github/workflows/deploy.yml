@@ -1,192 +1,158 @@
 name: Deploy Website
 
 on:
-  workflow_call:
-    inputs:
-      version_tag:
-        description: 'Version to deploy (e.g., nightly.20251223 or v0.9.84)'
-        required: true
-        type: string
-      channel:
-        description: 'Channel: latest, stable, or custom path'
-        required: true
-        type: string
-        default: 'latest'
-      binaries_repo:
-        description: 'Repository containing binaries (nightly or arturo)'
-        required: false
-        type: string
-        default: 'nightly'
-      run_id:
-        description: 'GitHub run ID to download artifacts from'
-        required: true
-        type: string
-    secrets:
-      FREEBSD_DEPLOYMENT:
-        required: true
+    workflow_call:
+        inputs:
+            version_tag:
+                description: 'Version to deploy (e.g., nightly.20251223 or v0.9.84)'
+                required: true
+                type: string
+            channel:
+                description: 'Channel: latest, stable, or custom path'
+                required: true
+                type: string
+                default: 'latest'
+        secrets:
+            FREEBSD_DEPLOYMENT:
+                required: true
 
-  workflow_dispatch:
-    inputs:
-      version_tag:
-        description: 'Version to deploy (e.g., nightly.20251223 or v0.9.84)'
-        required: true
-        type: string
-      channel:
-        description: 'Channel: latest, stable, or custom path'
-        required: true
-        type: string
-        default: 'latest'
-      binaries_repo:
-        description: 'Repository containing binaries (nightly or arturo)'
-        required: false
-        type: string
-        default: 'nightly'
-      run_id:
-        description: 'GitHub run ID to download artifacts from (leave empty to download from releases)'
-        required: false
-        type: string
+    workflow_dispatch:
+        inputs:
+            version_tag:
+                description: 'Version to deploy'
+                required: true
+                type: string
+            channel:
+                description: 'Channel: latest, stable, or custom path'
+                required: true
+                type: string
+                default: 'latest'
 
 jobs:
-  Deploy:
-    runs-on: ubuntu-latest
-    name: Generate Documentation & Deploy
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    Deploy:
+        runs-on: ubuntu-latest
+        name: Generate Documentation & Deploy
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
 
-      - name: Install Arturo
-        uses: arturo-lang/arturo-action@v2
-        with: 
-          do: compile
-          mode: docgen
-          token: ${{ secrets.GITHUB_TOKEN }}
-          metadata: ${{ inputs.version_tag }}
+            - name: Install Arturo
+              uses: arturo-lang/arturo-action@v2
+              with: 
+                do: compile
+                mode: docgen
+                token: ${{ secrets.GITHUB_TOKEN }}
+                metadata: ${{ inputs.version_tag }}
 
-      - name: "Install Node"
-        uses: actions/setup-node@v4
-        with:
-          node-version: latest
+            - name: "Install Node"
+              uses: actions/setup-node@v4
+              with:
+                node-version: latest
 
-      - name: "Install Ruby"
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.3
-          bundler-cache: true
+            - name: "Install Ruby"
+              uses: ruby/setup-ruby@v1
+              with:
+                ruby-version: 3.3
+                bundler-cache: true
 
-      - name: "Install build dependencies"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libcmocka-dev webp \
-                                  pandoc texlive-latex-base texlive-fonts-recommended \
-                                  texlive-extra-utils texlive-latex-extra
-          
-          sudo npm install -g sass uglify-js
+            - name: "Install build dependencies"
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y build-essential libcmocka-dev webp \
+                                        pandoc texlive-latex-base texlive-fonts-recommended \
+                                        texlive-extra-utils texlive-latex-extra
+                
+                sudo npm install -g sass uglify-js
 
-      # Download artifacts either from workflow run or from releases
-      - name: Download artifacts from workflow run
-        if: inputs.run_id != ''
-        uses: dawidd6/action-download-artifact@v11
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          run_id: ${{ inputs.run_id }}
-          workflow: ${{ inputs.binaries_repo == 'nightly' && 'nightly.yml' || 'release.yml' }}
-          repo: arturo-lang/${{ inputs.binaries_repo }}
-          path: ./files
-          skip_unpack: true
+            - name: Download artifacts
+              uses: dawidd6/action-download-artifact@v11
+              with:
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                run_id: ${{ github.run_id }}
+                path: ./files
+                skip_unpack: true
 
-      - name: Download artifacts from release
-        if: inputs.run_id == ''
-        run: |
-          mkdir -p files
-          REPO="arturo-lang/${{ inputs.binaries_repo }}"
-          gh release download "${{ inputs.version_tag }}" \
-            --repo "$REPO" \
-            --pattern "*.zip" \
-            --dir ./files
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Checkout examples repository
+              uses: actions/checkout@v4
+              with:
+                repository: arturo-lang/examples
+                path: examples
 
-      - name: Checkout examples repository
-        uses: actions/checkout@v4
-        with:
-          repository: arturo-lang/examples
-          path: examples
+            - name: "Generate website"
+              env:
+                VERSION_TAG: ${{ inputs.version_tag }}
+                CHANNEL: ${{ inputs.channel }}
+              run: |
+                arturo tools/binarygen.art "$VERSION_TAG" "$CHANNEL"
+                arturo tools/sitegen.art
+                arturo tools/indexgen.art
+                arturo tools/preprocessjs.art "$CHANNEL"
 
-      - name: "Generate website"
-        env:
-          VERSION_TAG: ${{ inputs.version_tag }}
-          CHANNEL: ${{ inputs.channel }}
-        run: |
-          arturo tools/binarygen.art "$VERSION_TAG" "$CHANNEL"
-          arturo tools/sitegen.art
-          arturo tools/indexgen.art
-          arturo tools/preprocessjs.art "$CHANNEL"
+                mv details.art src/data/setup.art
+                rm -rf tmpdocs
+                mkdir -p tmpdocs
+                cd src
+                arturo ../tools/miniwebize/webize.art --build --at: ../tmpdocs
+                cd ..
+                mkdir -p tmpdocs/backend
+                cp -r src/backend/* tmpdocs/backend/
+                mkdir -p tmpdocs/scripts
+                cp -r src/scripts/* tmpdocs/scripts
 
-          mv details.art src/data/setup.art
-          rm -rf tmpdocs
-          mkdir -p tmpdocs
-          cd src
-          arturo ../tools/miniwebize/webize.art --build --at: ../tmpdocs
-          cd ..
-          mkdir -p tmpdocs/backend
-          cp -r src/backend/* tmpdocs/backend/
-          mkdir -p tmpdocs/scripts
-          cp -r src/scripts/* tmpdocs/scripts
+                arturo tools/tutorialgen.art tmpdocs
+                
+            - name: Copy binaries to website
+              run: |
+                mkdir -p tmpdocs/files
+                echo "Copying binaries..."
+                cp files/*.zip tmpdocs/files/
+                echo "${{ inputs.version_tag }}" > tmpdocs/files/VERSION
+                echo "Binaries in tmpdocs:"
+                ls -lh tmpdocs/files/
+                
+            - name: Synchronize to website
+              uses: burnett01/rsync-deployments@7.0.2
+              with:
+                switches: -avzr --delete
+                path: tmpdocs/
+                remote_path: /usr/local/www/arturo/main/versions/${{ inputs.channel }}
+                remote_host: 188.245.97.105 
+                remote_user: web
+                remote_key: ${{ secrets.FREEBSD_DEPLOYMENT }}
 
-          arturo tools/tutorialgen.art tmpdocs
-          
-      - name: Copy binaries to website
-        run: |
-          mkdir -p tmpdocs/files
-          echo "Copying binaries..."
-          cp files/*.zip tmpdocs/files/
-          echo "${{ inputs.version_tag }}" > tmpdocs/files/VERSION
-          echo "Binaries in tmpdocs:"
-          ls -lh tmpdocs/files/
-          
-      - name: Synchronize to website
-        uses: burnett01/rsync-deployments@7.0.2
-        with:
-          switches: -avzr --delete
-          path: tmpdocs/
-          remote_path: /usr/local/www/arturo/main/versions/${{ inputs.channel }}
-          remote_host: 188.245.97.105 
-          remote_user: web
-          remote_key: ${{ secrets.FREEBSD_DEPLOYMENT }}
+            - name: Extract and move FreeBSD binary
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                host: 188.245.97.105
+                username: web
+                key: ${{ secrets.FREEBSD_DEPLOYMENT }}
+                script: |
+                  cd /usr/local/www/arturo/main/versions/${{ inputs.channel }}
+                
+                  # Download examples
+                  mkdir -p examples
+                  curl -L https://github.com/arturo-lang/examples/archive/refs/heads/main.tar.gz | \
+                      tar xz --strip-components=1 -C examples/
 
-      - name: Extract and move FreeBSD binary
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: 188.245.97.105
-          username: web
-          key: ${{ secrets.FREEBSD_DEPLOYMENT }}
-          script: |
-            cd /usr/local/www/arturo/main/versions/${{ inputs.channel }}
-          
-            # Download examples
-            mkdir -p examples
-            curl -L https://github.com/arturo-lang/examples/archive/refs/heads/main.tar.gz | \
-                tar xz --strip-components=1 -C examples/
+                  # Extract FreeBSD binary
+                  unzip -o files/*-freebsd-amd64.zip
+                  mkdir -p bin
+                  mv arturo bin/
+                  chmod +x scripts/setup_runner.sh
+                  sudo /usr/local/sbin/arturo_setup_runner ${{ inputs.channel }}
 
-            # Extract FreeBSD binary
-            unzip -o files/*-freebsd-amd64.zip
-            mkdir -p bin
-            mv arturo bin/
-            chmod +x scripts/setup_runner.sh
-            sudo /usr/local/sbin/arturo_setup_runner ${{ inputs.channel }}
+            - name: Upload complete website artifact
+              uses: 'actions/upload-artifact@v4'
+              with:
+                name: website-${{ inputs.channel }}-${{ inputs.version_tag }}
+                path: tmpdocs
 
-      - name: Upload complete website artifact
-        uses: 'actions/upload-artifact@v4'
-        with:
-          name: website-${{ inputs.channel }}-${{ inputs.version_tag }}
-          path: tmpdocs
-
-      - name: Display completion summary
-        run: |
-          echo "🎉 Website Deployment Complete!"
-          echo "Version: ${{ inputs.version_tag }}"
-          echo "Channel: ${{ inputs.channel }}"
-          echo "Binaries: $(ls files/ | wc -l) files"
-          echo "Deployed to: https://188.245.97.105/${{ inputs.channel }}"
+            - name: Display completion summary
+              run: |
+                echo "🎉 Website Deployment Complete!"
+                echo "Version: ${{ inputs.version_tag }}"
+                echo "Channel: ${{ inputs.channel }}"
+                echo "Binaries: $(ls files/ | wc -l) files"
+                echo "Deployed to: https://188.245.97.105/${{ inputs.channel }}"

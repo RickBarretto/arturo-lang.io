@@ -61,14 +61,11 @@ jobs:
                 create_artifact: 'true'
                 artifacts_only: 'true'
 
-    # Call the reusable website deployment workflow
     Deploy:
         needs: [Build, Binaries]
         uses: ./.github/workflows/deploy.yml
         with:
             version_tag: ${{ needs.Build.outputs.version_tag }}
             channel: 'latest'
-            binaries_repo: 'nightly'
-            run_id: ${{ github.run_id }}
         secrets:
             FREEBSD_DEPLOYMENT: ${{ secrets.FREEBSD_DEPLOYMENT }}
