@@ -148,7 +148,11 @@ jobs:
             - name: "Install build dependencies"
               run: |
                 sudo apt-get update
-                sudo apt-get install -y build-essential libcmocka-dev
+                sudo apt-get install -y build-essential libcmocka-dev webp \
+                                        pandoc texlive-latex-base texlive-fonts-recommended \
+                                        texlive-extra-utils texlive-latex-extra
+                
+                sudo npm install -g sass uglify-js
 
             - name: "Install Ruby"
               uses: ruby/setup-ruby@v1
@@ -158,12 +162,6 @@ jobs:
             - name: "Install gems"
               run: |
                 gem install commonmarker -v "2.1.0" --platform=ruby
-
-            - name: "Install prerequisites"
-              run: |
-                sudo apt-get update
-                sudo apt-get install webp 
-                sudo npm install -g sass uglify-js
 
             - name: Download artifacts
               uses: dawidd6/action-download-artifact@v11
@@ -206,7 +204,6 @@ jobs:
 
             - name: Generate tutorial
               run: |
-                sudo apt-get install pandoc texlive-latex-base texlive-fonts-recommended texlive-extra-utils texlive-latex-extra
                 sed 's/[^\x00-\x7F]//g' tmpdocs/llms.txt | pandoc -f gfm -t pdf -o tmpdocs/tutorial.pdf
 
             - name: Copy binaries to website
