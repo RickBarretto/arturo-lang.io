@@ -38,9 +38,7 @@ loop changes [file, replacements][
     loop replacements 'rep [
         print ["- replacing:" rep]
         content: replace content "%<[" ++ (to :string rep) ++ "]>%"
-                                 params\[rep]
+                                 write.compact.json params\[rep] ø
     ]
     content >> file
 ]
-
-print "end--"
