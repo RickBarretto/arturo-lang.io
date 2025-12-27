@@ -9,22 +9,7 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    Build:
-        runs-on: ubuntu-latest
-        outputs:
-            version_tag: ${{ steps.version-info.outputs.VERSION_TAG }}
-        steps:
-            - name: Increment build number and get version info
-              id: version-info
-              run: |
-                version_tag="nightly.20251226"
-                echo "VERSION_TAG=${version_tag}" >> "$GITHUB_OUTPUT"
-
     Deploy:
-        needs: [Build]
         uses: ./.github/workflows/deploy.yml
         with:
-            version_tag: ${{ needs.Build.outputs.version_tag }}
             channel: 'latest'
-        secrets:
-            FREEBSD_DEPLOYMENT: ${{ secrets.FREEBSD_DEPLOYMENT }}
