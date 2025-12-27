@@ -1,3 +1,6 @@
+
+TARGET: arg\0
+
 ppout: ""
 
 pprint: function [z].export:[ppout][
@@ -79,5 +82,12 @@ loop data [lib, contents][
     ]
 ]
 
-unless empty? ppout ->
-    ppout >> ./"aiguide.md"
+unless empty? ppout [
+    ppout >> join.path @[TARGET "llms.txt"]
+
+    cleanUnicode: replace ppout {/[^\x00-\x7F]/} ""
+    tutorialPath: join.path @[TARGET "tutorial.md"]
+    cleanUnicode >> tutorialPath
+    execute.directly ~{pandoc |tutorialPath| -f gfm -t pdf -o |TARGET|/tutorial.pdf}
+    delete tutorialPath
+]
