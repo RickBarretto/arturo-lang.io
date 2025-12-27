@@ -38,14 +38,6 @@ jobs:
               with:
                 fetch-depth: 0
 
-            # - name: Install Arturo
-            #   uses: arturo-lang/arturo-action@v2
-            #   with: 
-            #     do: compile
-            #     mode: docgen
-            #     token: ${{ secrets.GITHUB_TOKEN }}
-            #     metadata: ${{ inputs.version_tag }}
-
             - name: "Install Node"
               uses: actions/setup-node@v4
               with:
@@ -78,7 +70,7 @@ jobs:
               run: |
                 sudo apt-get update
                 sudo apt-get install libgtk-3-dev libmpfr-dev libwebkit2gtk-4.1-dev
-                
+
                 ARTIFACT_NAME="arturo-${{ inputs.version_tag }}-linux-amd64"
               
                 unzip -q "files/${ARTIFACT_NAME}.zip" -d /tmp/arturo
