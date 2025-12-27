@@ -23,7 +23,8 @@ loop sort list "files" 'filename [
         artifactName: extract.filename filename
         
         ; Only process arturo-* files
-        if prefix? artifactName "arturo-" [
+        if and? prefix? artifactName "arturo-"
+                not? contains? artifactName "-src" [
             print ["Processing:" artifactName]
             
             ; Get size
