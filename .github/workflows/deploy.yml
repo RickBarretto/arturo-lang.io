@@ -1,32 +1,21 @@
 name: Deploy Website
 
 on:
-    workflow_call:
+    workflow_call: &workflow_config
         inputs:
-            version_tag:
-                description: 'Version to deploy (e.g., nightly.20251223 or v0.9.84)'
-                required: true
-                type: string
             channel:
-                description: 'Channel: latest, stable, or custom path'
+                description: 'Channel: latest (nightly), stable (release), or current (from run)'
                 required: true
                 type: string
-                default: 'latest'
+            tag:
+                description: 'Custom version tag (only for current channel, defaults to commit SHA)'
+                required: false
+                type: string
         secrets:
             FREEBSD_DEPLOYMENT:
                 required: true
 
-    workflow_dispatch:
-        inputs:
-            version_tag:
-                description: 'Version to deploy'
-                required: true
-                type: string
-            channel:
-                description: 'Channel: latest, stable, or custom path'
-                required: true
-                type: string
-                default: 'latest'
+    workflow_dispatch: *workflow_config
 
 jobs:
     Deploy:
@@ -58,7 +47,62 @@ jobs:
                 
                 sudo npm install -g sass uglify-js
 
-            - name: Download artifacts
+            - name: Download binaries from release
+              if: inputs.channel != 'current'
+              id: download
+              run: |
+                mkdir -p files
+                
+                # Determine repository based on channel
+                if [ "${{ inputs.channel }}" = "stable" ]; then
+                    REPO="arturo-lang/arturo"
+                    echo "📦 Downloading from stable release (arturo-lang/arturo)..."
+                else
+                    REPO="arturo-lang/nightly"
+                    echo "📦 Downloading from nightly release (arturo-lang/nightly)..."
+                fi
+                
+                # Get latest release
+                LATEST_RELEASE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  "https://api.github.com/repos/${REPO}/releases/latest" | \
+                  jq -r '.tag_name')
+                
+                if [ -z "$LATEST_RELEASE" ] || [ "$LATEST_RELEASE" = "null" ]; then
+                    echo "❌ ERROR: Could not find latest release in $REPO"
+                    exit 1
+                fi
+                
+                echo "✅ Latest release: $LATEST_RELEASE"
+                echo "release_tag=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+                
+                # Download all assets from the release
+                ASSETS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  "https://api.github.com/repos/${REPO}/releases/latest" | \
+                  jq -r '.assets[].browser_download_url')
+                
+                echo "📥 Downloading release assets..."
+                for asset_url in $ASSETS; do
+                    filename=$(basename "$asset_url")
+                    echo "  - $filename"
+                    curl -fsSL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                      "$asset_url" -o "files/$filename"
+                done
+                
+                # Extract version from first zip file
+                FIRST_ZIP=$(ls files/*.zip | head -1)
+                if [ -z "$FIRST_ZIP" ]; then
+                    echo "❌ ERROR: No zip files found in release"
+                    exit 1
+                fi
+                
+                # Extract version part: arturo-VERSION-os-arch.zip -> VERSION
+                VERSION=$(basename "$FIRST_ZIP" .zip | cut -d- -f2)
+                echo "version_tag=$VERSION" >> $GITHUB_OUTPUT
+                echo "✅ Detected version: $VERSION"
+              shell: bash
+
+            - name: Download artifacts from workflow run
+              if: inputs.channel == 'current'
               uses: dawidd6/action-download-artifact@v11
               with:
                 github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -66,18 +110,52 @@ jobs:
                 path: ./files
                 skip_unpack: true
 
+            - name: Determine version for current channel
+              if: inputs.channel == 'current'
+              id: current_version
+              run: |
+                if [ -n "${{ inputs.tag }}" ]; then
+                    VERSION="${{ inputs.tag }}"
+                else
+                    VERSION="current.$(git rev-parse --short HEAD)"
+                fi
+                echo "version_tag=$VERSION" >> $GITHUB_OUTPUT
+                echo "✅ Version for current channel: $VERSION"
+              shell: bash
+
+            - name: Set final version
+              id: version
+              run: |
+                if [ "${{ inputs.channel }}" = "current" ]; then
+                    VERSION="${{ steps.current_version.outputs.version_tag }}"
+                else
+                    VERSION="${{ steps.download.outputs.version_tag }}"
+                fi
+                echo "tag=$VERSION" >> $GITHUB_OUTPUT
+                echo "🏷️  Final version tag: $VERSION"
+              shell: bash
+
             - name: Setup Arturo
               run: |
                 sudo apt-get update
-                sudo apt-get install libgtk-3-dev libmpfr-dev libwebkit2gtk-4.1-dev
+                sudo apt-get install -y libgtk-3-dev libmpfr-dev libwebkit2gtk-4.1-dev
 
-                ARTIFACT_NAME="arturo-${{ inputs.version_tag }}-linux-amd64"
-              
-                unzip -q "files/${ARTIFACT_NAME}.zip" -d /tmp/arturo
+                # Find and extract Linux AMD64 artifact
+                LINUX_ZIP=$(ls files/arturo-*-linux-amd64.zip | head -1)
+                
+                if [ -z "$LINUX_ZIP" ]; then
+                    echo "❌ ERROR: Could not find Linux AMD64 binary"
+                    ls -lah files/
+                    exit 1
+                fi
+                
+                echo "📦 Using: $(basename $LINUX_ZIP)"
+                unzip -q "$LINUX_ZIP" -d /tmp/arturo
                 
                 chmod +x /tmp/arturo/arturo
                 echo "/tmp/arturo" >> $GITHUB_PATH
                 
+                echo "✅ Arturo installed:"
                 /tmp/arturo/arturo --version
               shell: bash
 
@@ -89,7 +167,7 @@ jobs:
 
             - name: "Generate website"
               env:
-                VERSION_TAG: ${{ inputs.version_tag }}
+                VERSION_TAG: ${{ steps.version.outputs.tag }}
                 CHANNEL: ${{ inputs.channel }}
               run: |
                 arturo tools/binarygen.art "$VERSION_TAG" "$CHANNEL"
@@ -113,10 +191,10 @@ jobs:
             - name: Copy binaries to website
               run: |
                 mkdir -p tmpdocs/files
-                echo "Copying binaries..."
+                echo "📦 Copying binaries..."
                 cp files/*.zip tmpdocs/files/
-                echo "${{ inputs.version_tag }}" > tmpdocs/files/VERSION
-                echo "Binaries in tmpdocs:"
+                echo "${{ steps.version.outputs.tag }}" > tmpdocs/files/VERSION
+                echo "✅ Binaries in tmpdocs:"
                 ls -lh tmpdocs/files/
                 
             - name: Synchronize to website
@@ -153,13 +231,15 @@ jobs:
             - name: Upload complete website artifact
               uses: 'actions/upload-artifact@v4'
               with:
-                name: website-${{ inputs.channel }}-${{ inputs.version_tag }}
+                name: website-${{ inputs.channel }}-${{ steps.version.outputs.tag }}
                 path: tmpdocs
 
             - name: Display completion summary
               run: |
                 echo "🎉 Website Deployment Complete!"
-                echo "Version: ${{ inputs.version_tag }}"
-                echo "Channel: ${{ inputs.channel }}"
-                echo "Binaries: $(ls files/ | wc -l) files"
-                echo "Deployed to: https://188.245.97.105/${{ inputs.channel }}"
+                echo "======================================"
+                echo "Channel:  ${{ inputs.channel }}"
+                echo "Version:  ${{ steps.version.outputs.tag }}"
+                echo "Binaries: $(ls files/*.zip | wc -l) files"
+                echo "URL:      https://188.245.97.105/${{ inputs.channel }}"
+                echo "======================================"
