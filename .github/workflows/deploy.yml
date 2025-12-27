@@ -108,29 +108,20 @@ jobs:
                 path: ./files
                 skip_unpack: true
 
-            - name: Determine version for current channel
-              if: inputs.channel == 'current'
-              id: current_version
-              run: |
-                if [ -n "${{ inputs.tag }}" ]; then
-                    VERSION="${{ inputs.tag }}"
-                else
-                    VERSION="current.$(git rev-parse --short HEAD)"
-                fi
-                echo "version_tag=$VERSION" >> $GITHUB_OUTPUT
-                echo "✅ Version for current channel: $VERSION"
-              shell: bash
-
-            - name: Set final version
+            - name: Set version tag
               id: version
               run: |
                 if [ "${{ inputs.channel }}" = "current" ]; then
-                    VERSION="${{ steps.current_version.outputs.version_tag }}"
+                    if [ -n "${{ inputs.tag }}" ]; then
+                        VERSION="${{ inputs.tag }}"
+                    else
+                        VERSION="current.$(git rev-parse --short HEAD)"
+                    fi
                 else
                     VERSION="${{ steps.download.outputs.version_tag }}"
                 fi
                 echo "tag=$VERSION" >> $GITHUB_OUTPUT
-                echo "🏷️  Final version tag: $VERSION"
+                echo "🏷️  Version tag: $VERSION"
               shell: bash
 
             - name: Setup Arturo
