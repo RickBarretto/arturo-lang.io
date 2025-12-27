@@ -11,5 +11,6 @@ concurrency:
 jobs:
     Deploy:
         uses: ./.github/workflows/deploy.yml
+        secrets: inherit
         with:
             channel: 'latest'
