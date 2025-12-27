@@ -54,10 +54,10 @@ jobs:
                 # Determine repository based on channel
                 if [ "${{ inputs.channel }}" = "stable" ]; then
                     REPO="arturo-lang/arturo"
-                    echo "📦 Downloading from stable release (arturo-lang/arturo)..."
+                    echo "📦 Downloading stable release..."
                 else
                     REPO="arturo-lang/nightly"
-                    echo "📦 Downloading from nightly release (arturo-lang/nightly)..."
+                    echo "📦 Downloading nightly release..."
                 fi
                 
                 # Get latest release
@@ -78,7 +78,7 @@ jobs:
                   "https://api.github.com/repos/${REPO}/releases/latest" | \
                   jq -r '.assets[].browser_download_url')
                 
-                echo "📥 Downloading release assets..."
+                echo "Downloading release assets..."
                 for asset_url in $ASSETS; do
                     filename=$(basename "$asset_url")
                     echo "  - $filename"
@@ -96,7 +96,7 @@ jobs:
                 # Extract version part: arturo-VERSION-os-arch.zip -> VERSION
                 VERSION=$(basename "$FIRST_ZIP" .zip | cut -d- -f2)
                 echo "version_tag=$VERSION" >> $GITHUB_OUTPUT
-                echo "✅ Detected version: $VERSION"
+                echo "Detected version: $VERSION"
               shell: bash
 
             - name: Download artifacts from workflow run
@@ -177,7 +177,7 @@ jobs:
             - name: Copy binaries to website
               run: |
                 mkdir -p tmpdocs/files
-                echo "📦 Copying binaries..."
+                echo "Copying binaries..."
                 cp files/*.zip tmpdocs/files/
                 echo "${{ steps.version.outputs.tag }}" > tmpdocs/files/VERSION
                 echo "✅ Binaries in tmpdocs:"
