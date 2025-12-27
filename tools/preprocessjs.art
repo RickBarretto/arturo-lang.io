@@ -28,8 +28,8 @@ changes: #[
 
 params: #[
     basePath: arg\0
-    keywordPredicates: keywordPredicates
-    keywordRest: keywordRest
+    keywordPredicates: write.compact.json keywordPredicates ø
+    keywordRest: write.compact.json keywordRest ø
 ]
 
 loop changes [file, replacements][
@@ -38,7 +38,7 @@ loop changes [file, replacements][
     loop replacements 'rep [
         print ["- replacing:" rep]
         content: replace content "%<[" ++ (to :string rep) ++ "]>%"
-                                 write.compact.json params\[rep] ø
+                                 params\[rep]
     ]
     content >> file
 ]
